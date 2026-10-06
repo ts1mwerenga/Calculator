@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teller Calculator</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f4f8fa; --border:#1f5c73; --line:#d5e3e9;
+    --text:#0f3a4d; --dim:#5c7c88; --teal:#1f6d8c; --teal-dark:#134656;
+    --gold:#f0a824; --pay:#b3261e; --take:#1b7a3d;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 2vw;background:var(--teal-dark);color:#fff;}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px;}
+  .brand img{height:9vh;min-height:56px;width:auto;}
+  .meta{font-size:14px;opacity:.85;}
+  .tabs{display:flex;gap:8px;align-items:center;}
+  .tabs button,.btn{background:#fff;color:var(--teal-dark);border:1px solid #fff;border-radius:6px;padding:10px 18px;font-size:16px;cursor:pointer;}
+  .tabs button.active{background:var(--gold);border-color:var(--gold);color:#3a2a06;font-weight:700;}
+  main{padding:2vh 2vw;}
+  .hidden{display:none !important;}
+
+  /* Rate board */
+  .board{width:100%;border-collapse:collapse;font-size:clamp(18px,3.4vh,40px);}
+  .board th{font-size:clamp(12px,1.8vh,18px);text-transform:uppercase;letter-spacing:.04em;text-align:right;padding:1.2vh 2vw;border-bottom:3px solid var(--border);color:var(--teal-dark);}
+  .board th:first-child,.board td:first-child{text-align:left;}
+  .board td{padding:1.6vh 2vw;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;font-weight:700;}
+  .board .ccy{display:flex;align-items:center;gap:14px;font-weight:700;}
+  .board .ccy small{display:block;font-weight:400;font-size:.45em;color:var(--dim);}
+  .board .flag{font-size:1.2em;}
+  .board .buy{color:var(--teal);} .board .sell{color:var(--teal-dark);}
+  .board-note{color:var(--dim);font-size:clamp(13px,1.8vh,18px);margin:1.5vh 2vw;}
+  .ticker{overflow:hidden;white-space:nowrap;background:var(--teal-dark);color:#fff;padding:10px 0;margin-top:2vh;font-size:clamp(14px,2vh,20px);}
+  .ticker span{display:inline-block;padding-left:100%;animation:scroll 60s linear infinite;}
+  @keyframes scroll{to{transform:translateX(-100%);}}
+
+  /* Calculator */
+  .calc{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1.2fr);gap:24px;max-width:1200px;margin:0 auto;}
+  @media (max-width:800px){.calc{grid-template-columns:1fr;}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .label{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin:14px 0 6px;}
+  .card > .label:first-child{margin-top:0;}
+  .seg{display:grid;gap:8px;grid-template-columns:1fr 1fr;}
+  .seg button{padding:14px 10px;border:2px solid var(--line);background:#fff;border-radius:8px;font-size:16px;cursor:pointer;color:var(--text);text-align:left;}
+  .seg button b{display:block;font-size:17px;}
+  .seg button.active{border-color:var(--teal);background:#e6f0f4;}
+  .ccys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .ccys button{padding:10px 4px;border:2px solid var(--line);background:#fff;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;color:var(--text);}
+  .ccys button.active{border-color:var(--teal);background:#e6f0f4;}
+  input[type=number]{width:100%;font-size:30px;padding:12px;border:2px solid var(--border);border-radius:8px;font-variant-numeric:tabular-nums;}
+  .hint{font-size:13px;color:var(--dim);margin-top:6px;}
+  .result{border-radius:10px;padding:20px;color:#fff;margin-bottom:14px;}
+  .result.pay{background:var(--pay);} .result.take{background:var(--take);} .result.empty{background:#9fb4bd;}
+  .result .big{font-size:clamp(28px,5vw,46px);font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
+  .result .sub{font-size:16px;opacity:.95;margin-top:6px;}
+  table.lines{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums;}
+  table.lines td{padding:7px 4px;border-bottom:1px solid var(--line);}
+  table.lines td:last-child{text-align:right;font-weight:600;}
+  table.lines tr.total td{font-weight:800;font-size:18px;border-bottom:none;}
+  .warn{background:#fff4dd;border:1px solid var(--gold);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:14px;}
+  .cebs{background:#e6f0f4;border-radius:8px;padding:10px 12px;margin-top:12px;font-size:14px;}
+  table.bands{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px;font-variant-numeric:tabular-nums;}
+  table.bands th,table.bands td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right;}
+  table.bands th:first-child,table.bands td:first-child{text-align:left;}
+  table.bands tr.on td{background:#fff4dd;font-weight:700;}
+  .keep{font-size:13px;color:var(--dim);margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand"><img src="images-removebg-preview.png" alt=""><div>Teller Calculator<div class="meta" id="meta"></div></div></div>
+</div>
+
+
+<main id="viewCalc">
+  <div class="calc">
+    <div class="card">
+      <div class="label">What is the customer doing?</div>
+      <div class="seg" id="sideSeg">
+        <button data-side="buy" class="active"><b>Gives us currency</b>We buy · we pay USD</button>
+        <button data-side="sell"><b>Wants currency</b>We sell · they pay USD</button>
+      </div>
+      <div class="label">Currency</div>
+      <div class="ccys" id="ccySeg"></div>
+      <div id="modeWrap">
+        <div class="label">Customer names</div>
+        <div class="seg" id="modeSeg">
+          <button data-mode="foreign" class="active"><b id="modeForeignLbl">Rand amount</b>e.g. "I want R1,500"</button>
+          <button data-mode="usd"><b>USD amount</b>e.g. "I have $106"</button>
+        </div>
+      </div>
+      <div class="label" id="amountLbl">Amount</div>
+      <input type="number" id="amount" min="0" step="any" inputmode="decimal" placeholder="0">
+      <div class="hint" id="amountHint"></div>
+      <div class="label">Rates for this currency</div>
+      <table class="bands"><thead><tr><th>Deal size</th><th>We buy</th><th>We sell</th></tr></thead><tbody id="bandRows"></tbody></table>
+    </div>
+
+    <div>
+      <div class="result empty" id="result"><div class="big">Enter an amount</div></div>
+      <div class="card" id="detail" style="display:none">
+        <table class="lines" id="lines"></table>
+        <div class="cebs" id="cebsTip"></div>
+        <div class="warn hidden" id="warn"></div>
+        <div class="keep" id="keep"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="rates.js"></script>
+<script src="fx.js"></script>
+<script>
+const CODES = Object.keys(FX_RATES.spot);
+const MAX_DEAL_USD = 3000;
+const NOT_IN_CEBS = ["CAD"]; // remove a code once its spot rate and 5 bands are set up in CEBS
+const state = { side: "buy", code: "ZAR", mode: "foreign" };
+
+const $ = id => document.getElementById(id);
+const money = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fx = (code, n) => FX.CURRENCIES[code].symbol + n.toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
+const rateFmt = r => r.toFixed(r >= 1 ? 4 : 6);
+
+$("meta").textContent = `${FX_RATES.branch} · rates for ${new Date(FX_RATES.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`;
+
+// Calculator controls
+$("ccySeg").innerHTML = CODES.map(c => `<button data-code="${c}">${FX.CURRENCIES[c].flag} ${c}</button>`).join("");
+function seg(id, key) {
+  $(id).querySelectorAll("button").forEach(btn => btn.onclick = () => {
+    state[key] = btn.dataset[key === "code" ? "code" : key];
+    render();
+    $("amount").focus();
+  });
+}
+seg("sideSeg", "side"); seg("ccySeg", "code"); seg("modeSeg", "mode");
+$("amount").oninput = render;
+
+function render() {
+  const { side, code } = state;
+  const mode = side === "sell" ? state.mode : "foreign";
+  const cur = FX.CURRENCIES[code], spot = FX_RATES.spot[code];
+  document.querySelectorAll("#sideSeg button").forEach(b => b.classList.toggle("active", b.dataset.side === side));
+  document.querySelectorAll("#ccySeg button").forEach(b => b.classList.toggle("active", b.dataset.code === code));
+  document.querySelectorAll("#modeSeg button").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+  $("modeWrap").classList.toggle("hidden", side !== "sell");
+  $("modeForeignLbl").textContent = `${code} amount`;
+  $("amountLbl").textContent = mode === "usd" ? "US dollars the customer is paying" : side === "buy" ? `${code} the customer is giving us` : `${code} the customer wants`;
+  $("amountHint").textContent = side === "buy" ? "Count the notes first, then type the amount." : "";
+
+  const amt = parseFloat($("amount").value);
+  const q = amt > 0 ? FX.quote(code, spot, side, mode === "usd" ? { usd: amt } : { foreign: amt }) : null;
+
+  // Band table, current band highlighted
+  $("bandRows").innerHTML = FX.bands(code, spot).map(b =>
+    `<tr class="${q && q.band.band === b.band ? "on" : ""}"><td>${b.label}</td><td>${rateFmt(b.buyRate)}</td><td>${rateFmt(b.sellRate)}</td></tr>`).join("");
+
+  if (!q) {
+    $("result").className = "result empty";
+    $("result").innerHTML = `<div class="big">Enter an amount</div>`;
+    $("detail").style.display = "none";
+    return;
+  }
+  $("detail").style.display = "";
+  const bandTxt = `Band ${q.band.band} (${q.band.label})`;
+  const m = side === "buy" ? q.band.buyMargin : q.band.sellMargin;
+  const bandRate = side === "buy" ? q.band.buyRate : q.band.sellRate;
+  const how = `
+      <tr><td>Spot rate (same as CEBS)</td><td>${spot}</td></tr>
+      <tr><td>${bandTxt} margin</td><td>${side === "buy" ? "+" : "−"}${m}%</td></tr>
+      <tr><td>Rate = ${spot} × (1 ${side === "buy" ? "+" : "−"} ${m}%)</td><td>${bandRate.toFixed(6)}</td></tr>`
+    + (q.rate !== bandRate ? `
+      <tr><td>Rate used (rounded to whole notes, as CEBS Fixed Amount)</td><td>${q.rate.toFixed(6)}</td></tr>` : "");
+  if (side === "buy") {
+    $("result").className = "result pay";
+    $("result").innerHTML = `<div class="big">PAY CUSTOMER ${money(q.cash)}</div><div class="sub">Take ${fx(code, q.foreign)} from the customer</div>`;
+    $("lines").innerHTML = `
+      <tr><td>Customer gives</td><td>${fx(code, q.foreign)}</td></tr>${how}
+      <tr><td>Amount in USD = ${fx(code, q.foreign)} ÷ ${q.rate.toFixed(6)}</td><td>${money(q.usd)}</td></tr>
+      <tr><td>Transaction fee</td><td>−${money(q.fee)}</td></tr>
+      <tr class="total"><td>We pay the customer</td><td>${money(q.cash)}</td></tr>`;
+    $("cebsTip").innerHTML = `<b>In CEBS:</b> Buy · ${code} · amount ${q.foreign}. Before paying, check CEBS <b>We Pay</b> = ${money(q.cash)}.`;
+  } else {
+    $("result").className = "result take";
+    $("result").innerHTML = `<div class="big">TAKE ${money(q.cash)}</div><div class="sub">Give the customer ${fx(code, q.foreign)}</div>`;
+    $("lines").innerHTML = `
+      <tr><td>Customer gets</td><td>${fx(code, q.foreign)}</td></tr>${how}
+      <tr><td>Amount in USD = ${fx(code, q.foreign)} ÷ ${q.rate.toFixed(6)}</td><td>${money(q.usd)}</td></tr>
+      <tr><td>Transaction fee</td><td>${money(q.fee)}</td></tr>
+      <tr class="total"><td>Customer pays us</td><td>${money(q.cash)}</td></tr>`;
+    $("cebsTip").innerHTML = mode === "usd"
+      ? `<b>In CEBS:</b> Sell · ${code} · tick <b>Fixed Amount</b> · ${money(q.usd)}. CEBS must show ${fx(code, q.foreign)} before you hand anything over.`
+      : `<b>In CEBS:</b> Sell · ${code} · amount ${q.foreign}. Check CEBS shows ${money(q.cash)}.`;
+  }
+  const warns = [];
+  if (NOT_IN_CEBS.includes(code)) warns.push(`${code} is not set up in CEBS yet. Don't trade it until it is.`);
+  if (q.usd > MAX_DEAL_USD) warns.push(`Over the $${MAX_DEAL_USD.toLocaleString()} deal limit: CEBS will block this deal.`);
+  if (side === "buy" && q.usd <= q.fee) warns.push("The deal is smaller than the $1 fee.");
+  $("warn").classList.toggle("hidden", !warns.length);
+  $("warn").textContent = warns.join(" ");
+  const feeTxt = q.fee ? ` plus the ${money(q.fee)} fee` : "";
+  $("keep").textContent = `We keep ${money(q.kept)} (${q.keptPct}%): the ${q.band.keep}% tariff margin for this deal size${feeTxt}.`;
+}
+render();
+</script>
+</body>
+</html>
