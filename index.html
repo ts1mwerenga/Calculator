@@ -139,7 +139,7 @@
 <script>
 const CODES = Object.keys(FX_RATES.spot);
 const MAX_DEAL_USD = 3000;
-const NOT_IN_CEBS = ["CAD"]; // remove a code once its spot rate and 5 bands are set up in CEBS
+const NOT_IN_CEBS = ["CAD", "BWP"]; // remove a code once its spot rate and 5 bands are set up in CEBS
 const state = { side: "buy", code: "ZAR", mode: "foreign" };
 
 const $ = id => document.getElementById(id);

@@ -11,6 +11,7 @@ var FX_RATES = {
     GBP: 0.7548,
     AED: 3.6725,
     CNY: 6.7050,
+    BWP: 14.2462,
     CAD: 1.4246   // not set up in CEBS yet: add it there before trading
   },
   // The spot each currency's CEBS band LIMITS were worked out from. CEBS doesn't move the

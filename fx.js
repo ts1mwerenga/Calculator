@@ -25,6 +25,7 @@
     GBP: { name: "Pound sterling", flag: "🇬🇧", symbol: "£" },
     AED: { name: "UAE dirham", flag: "🇦🇪", symbol: "AED " },
     CNY: { name: "Chinese yuan", flag: "🇨🇳", symbol: "¥" },
+    BWP: { name: "Botswana pula", flag: "🇧🇼", symbol: "P" },
     CAD: { name: "Canadian dollar", flag: "🇨🇦", symbol: "C$" }
   };
 
