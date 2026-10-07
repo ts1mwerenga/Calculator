@@ -36,13 +36,16 @@
   }
 
   // The 5 bands for a currency, built the way CEBS builds them.
-  function bands(code, spot) {
+  // limitSpot: the spot the CEBS band limits were worked out from. CEBS keeps the limits
+  // when spot changes (they're only recalculated after a 5% move), so pass it when they differ.
+  function bands(code, spot, limitSpot) {
+    var ls = limitSpot || spot;
     var m = MARGINS[code === "ZAR" ? "ZAR" : "STD"];
     var keep = KEEP[code === "ZAR" ? "ZAR" : "STD"];
     var out = [];
     var low = 0.01;
     for (var i = 0; i < 5; i++) {
-      var up = i < 4 ? round(TIERS_USD[i] * spot, 2) : Infinity;
+      var up = i < 4 ? round(TIERS_USD[i] * ls, 2) : Infinity;
       var buyRate = round(spot * (1 + m[i][0] / 100), 6);
       var sellRate = round(spot * (1 - m[i][1] / 100), 6);
       out.push({
@@ -75,8 +78,8 @@
   // side: "buy"  = customer gives us foreign currency, we pay USD.
   //       "sell" = customer takes foreign currency, pays us USD.
   // input: { foreign: n } or, for sells only, { usd: n } (CEBS "Fixed Amount").
-  function quote(code, spot, side, input) {
-    var list = bands(code, spot);
+  function quote(code, spot, side, input, limitSpot) {
+    var list = bands(code, spot, limitSpot);
     var b, foreign, rate, usd;
     if (input.usd != null) {
       if (side !== "sell") throw new Error("A fixed USD amount is only for sells");

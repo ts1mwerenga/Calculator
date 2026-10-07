@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#134656">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calculator">
+<link rel="apple-touch-icon" href="images-removebg-preview.png">
+<link rel="icon" href="images-removebg-preview.png">
 <title>Teller Calculator</title>
 <style>
   :root{
@@ -38,7 +44,25 @@
 
   /* Calculator */
   .calc{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1.2fr);gap:24px;max-width:1200px;margin:0 auto;}
-  @media (max-width:800px){.calc{grid-template-columns:1fr;}}
+  /* Phone: one column, and the PAY/TAKE box sticks to the top while you type */
+  @media (max-width:800px){
+    .calc{grid-template-columns:minmax(0,1fr);gap:12px;}
+    .card{min-width:0;padding:14px;}
+    .seg button,.ccys button{min-width:0;}
+    .calc > .right{display:contents;}
+    #result{position:sticky;top:0;z-index:5;order:-1;margin-bottom:0;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    #result .big{font-size:26px;}
+    main{padding:12px;}
+    .header{padding:8px 12px;}
+    .brand{font-size:17px;}
+    .brand img{height:44px;min-height:0;}
+    .meta{font-size:12px;}
+    .seg button{padding:10px 8px;font-size:14px;}
+    .seg button b{font-size:15px;}
+    .ccys button{padding:12px 4px;}
+    input[type=number]{font-size:26px;}
+    table.lines{font-size:14px;}
+  }
   .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
   .label{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin:14px 0 6px;}
   .card > .label:first-child{margin-top:0;}
@@ -98,7 +122,7 @@
       <table class="bands"><thead><tr><th>Deal size</th><th>We buy</th><th>We sell</th></tr></thead><tbody id="bandRows"></tbody></table>
     </div>
 
-    <div>
+    <div class="right">
       <div class="result empty" id="result"><div class="big">Enter an amount</div></div>
       <div class="card" id="detail" style="display:none">
         <table class="lines" id="lines"></table>
@@ -150,10 +174,11 @@ function render() {
   $("amountHint").textContent = side === "buy" ? "Count the notes first, then type the amount." : "";
 
   const amt = parseFloat($("amount").value);
-  const q = amt > 0 ? FX.quote(code, spot, side, mode === "usd" ? { usd: amt } : { foreign: amt }) : null;
+  const limitSpot = (FX_RATES.limitSpot || {})[code];
+  const q = amt > 0 ? FX.quote(code, spot, side, mode === "usd" ? { usd: amt } : { foreign: amt }, limitSpot) : null;
 
   // Band table, current band highlighted
-  $("bandRows").innerHTML = FX.bands(code, spot).map(b =>
+  $("bandRows").innerHTML = FX.bands(code, spot, limitSpot).map(b =>
     `<tr class="${q && q.band.band === b.band ? "on" : ""}"><td>${b.label}</td><td>${rateFmt(b.buyRate)}</td><td>${rateFmt(b.sellRate)}</td></tr>`).join("");
 
   if (!q) {

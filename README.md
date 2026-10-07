@@ -5,8 +5,10 @@ rounding and $1 fee as CEBS. Open `index.html` (or serve the folder).
 
 ## Every morning
 1. Run `python3 ~/Desktop/CEBS/Tools/check_rates.py` and update the spot rates in CEBS.
-2. Type the **same** spot rates into `rates.js` here and change the date.
-3. Run `./sync_board.sh`. It runs the tests, then copies the rates to the Exchange Board.
+2. Type the **same** spot rates into `rates.js` here and change the date. Leave `limitSpot` alone unless the band limits were recalculated in CEBS (after a 5% move).
+3. Run `node test.js`, then commit and push. Cloudflare Pages redeploys https://calculator-24c.pages.dev in about a minute.
+
+Works on phones: open the link in the phone's browser and use "Add to Home Screen" to keep it as an app icon.
 
 ## Files
 - `index.html`: the calculator.
