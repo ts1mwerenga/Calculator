@@ -35,6 +35,13 @@
     return Number(x.toFixed(dp));
   }
 
+  // Band BUY rates are worked out by the CEBS server when spot is saved, and it rounds an exact
+  // half UP (6.705 x 1.0753 = 7.2098865 -> 7.209887). Seen on live 7 Oct 2026 (AED 4, CNY 1, CNY 5).
+  function roundHalfUp(x, dp) {
+    var f = Math.pow(10, dp);
+    return Math.round(Number((x * f).toPrecision(12))) / f;
+  }
+
   // The 5 bands for a currency, built the way CEBS builds them.
   // limitSpot: the spot the CEBS band limits were worked out from. CEBS keeps the limits
   // when spot changes (they're only recalculated after a 5% move), so pass it when they differ.
@@ -46,7 +53,7 @@
     var low = 0.01;
     for (var i = 0; i < 5; i++) {
       var up = i < 4 ? round(TIERS_USD[i] * ls, 2) : Infinity;
-      var buyRate = round(spot * (1 + m[i][0] / 100), 6);
+      var buyRate = roundHalfUp(spot * (1 + m[i][0] / 100), 6);
       var sellRate = round(spot * (1 - m[i][1] / 100), 6);
       out.push({
         band: i + 1, label: TIER_LABELS[i], keep: keep[i],
